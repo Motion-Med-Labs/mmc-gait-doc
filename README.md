@@ -2,7 +2,7 @@
 
 ## Documentation Link
 
-[https://motion-med-labs.github.io/mmc-gait-doc/] (MMC Gait Documentation)
+[MMC Gait Documentation](https://motion-med-labs.github.io/mmc-gait-doc/)
 
 ## Documentation
 
