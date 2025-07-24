@@ -1,5 +1,9 @@
 # MMC Gait Documentation
 
+## Documentation Link
+
+[https://motion-med-labs.github.io/mmc-gait-doc/](MMC Gait Documentation)
+
 ## Documentation
 
 ### Install Redocly
