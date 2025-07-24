@@ -15,5 +15,5 @@ npm install -g redocly
 ### Build Documentation
 
 ```bash
-redocly build-docs swagger.yml --output index.html
+make build-docs
 ```
