@@ -1,26 +1,55 @@
 openapi: 3.1.0
 info:
-  title: Synaptic Relay Coordinator API
-  version: "1.0.1"
+  title: MMC Gait Assessment API
+  version: "1.0.0"
   description: |
-    This API powers the Synaptic platform coordination between:
-    - **Kiosk**: Patient-facing check-in and status
-    - **Relay**: Orchestration and data flow
-    - **Visionary**: Processing and analytics for gait assessments
-  contact:
-    name: Synaptic API Team
-    email: api-support@synaptic.local
+    ## MMC Gait Project – API Documentation
+
+    This API defines the services powering the MMC Gait Assessment System,
+    which supports full patient flow through a walk test involving photogates,
+    synchronized Orbbec cameras, and real-time processing.
+
+    ### 🧭 System Components
+
+    #### 🖥️ Kiosk (Patient-Facing)
+    - QR/manual ID input
+    - Sends ID to Relay (for tagging)
+    - Displays system readiness + instructions
+    - Begins test after first photogate triggers
+    - Shows raw output after test
+
+    #### 🧠 Relay Server (Coordinator)
+    - Starts/stops cameras
+    - Tracks photogates via DAQ
+    - Orchestrates system state
+    - Sends/receives data from Kiosk + Visionary
+
+    #### 🧬 Visionary Server (Processor)
+    - Processes raw gait footage
+    - Sends back structured gait data
+
+    ### ✅ Demo Flow
+    1. **Check-in** via Kiosk
+    2. **Relay arms system**
+    3. **Cameras + DAQ capture** triggered by photogates
+    4. **Visionary processes gait**
+    5. **Relay returns output** to Kiosk
+
+    ### 📦 API Domains
+    - **Kiosk**: Assessment check-in, state display, data receipt
+    - **Relay**: Start/stop coordination, central status tracking
+    - **Visionary**: Raw data ingestion and analytics
 
 servers:
   - url: http://localhost
 
 tags:
   - name: Kiosk
-    description: Handles patient check-in and on-site assessments
+    description: Patient-facing interface and display
   - name: Relay
-    description: Coordinates assessment orchestration and data movement
+    description: Central coordinator of assessment hardware
   - name: Visionary
-    description: Performs camera-based assessment processing
+    description: Handles camera data processing and result return
 
 paths:
   /kiosk/assessment/store:
