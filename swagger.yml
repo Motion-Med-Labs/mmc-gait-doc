@@ -76,30 +76,30 @@ paths:
                   message:
                     type: string
 
-  /kiosk/assessment/status:
-    get:
+
+  /kiosk/assessment/status/update:
+    post:
       tags: [Kiosk]
-      summary: Get current assessment status for a patient
-      operationId: getAssessmentStatus
-      parameters:
-        - name: patient_id
-          in: query
-          required: true
-          schema:
-            type: string
+      summary: Update the current status of an in-progress assessment on the kiosk
+      operationId: updateAssessmentStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAssessmentStatusRequest'
       responses:
         '200':
-          description: Current assessment status
+          description: Status updated successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: string
-                    enum: [not_started, in_progress, processing, completed]
-                  current_step:
-                    type: string
+                  updated:
+                    type: boolean
+                    example: true
+
 
   /relay/assessment/prepare:
     post:
@@ -164,7 +164,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CameraDataInput'
+              $ref: '#/components/schemas/GaitAssessmentRequest'
       responses:
         '200':
           description: Assessment processed successfully
@@ -173,6 +173,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Assessment'
 
+
 components:
   schemas:
     Patient:
@@ -180,9 +181,11 @@ components:
       properties:
         id:
           type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
         status:
           type: string
-          enum: [waiting, in_progress, completed]
+          enum: [waiting, ready, in_progress, done]
       required: [id, status]
 
     Assessment:
@@ -190,26 +193,44 @@ components:
       properties:
         id:
           type: string
+          format: uuid
+          example: "111e8400-e29b-41d4-a716-446655440abc"
         patient_id:
           type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
         data:
           type: object
-          description: Arbitrary assessment results or metadata
           additionalProperties: true
       required: [patient_id, data]
 
-    CameraDataInput:
+    GaitAssessmentRequest:
       type: object
       properties:
         patient_id:
           type: string
-        start_time:
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        csn:
           type: string
-          format: date-time
-        stop_time:
+        camera_data:
+          type: object
+          additionalProperties: true
+      required: [patient_id, camera_data]
+
+    UpdateAssessmentStatusRequest:
+      type: object
+      properties:
+        assessment_id:
           type: string
-          format: date-time
-      required: [patient_id, start_time, stop_time]
+          format: uuid
+          example: "111e8400-e29b-41d4-a716-446655440abc"
+        state:
+          type: string
+          enum: [not_ready, ready, in_progress, processing, complete]
+        step:
+          type: string
+      required: [assessment_id, state]
 
   securitySchemes:
     bearerAuth:
