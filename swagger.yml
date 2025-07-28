@@ -76,7 +76,6 @@ paths:
                   message:
                     type: string
 
-
   /kiosk/assessment/status/update:
     post:
       tags: [Kiosk]
@@ -100,7 +99,6 @@ paths:
                     type: boolean
                     example: true
 
-
   /relay/assessment/prepare:
     post:
       tags: [Relay]
@@ -115,6 +113,8 @@ paths:
               properties:
                 patient_id:
                   type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
               required: [patient_id]
       responses:
         '200':
@@ -173,7 +173,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Assessment'
 
-
 components:
   schemas:
     Patient:
@@ -227,9 +226,21 @@ components:
           example: "111e8400-e29b-41d4-a716-446655440abc"
         state:
           type: string
-          enum: [not_ready, ready, in_progress, processing, complete]
-        step:
+          description: >
+            Represents the current state of the assessment. Can indicate progress or failure.
+          enum:
+            - not_ready
+            - ready
+            - waiting_for_trigger
+            - capturing
+            - analyzing
+            - complete
+            - error
+          example: capturing
+        error_message:
           type: string
+          description: Optional message to include if state is 'error'
+          example: "Camera connection lost during capture"
       required: [assessment_id, state]
 
   securitySchemes:
