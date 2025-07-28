@@ -1,48 +1,135 @@
 openapi: 3.1.0
 info:
-  title: Synaptic Relay Coordinator
-  version: "1.0.0"
+  title: Synaptic Relay Coordinator API
+  version: "1.0.1"
+  description: |
+    This API powers the Synaptic platform coordination between:
+    - **Kiosk**: Patient-facing check-in and status
+    - **Relay**: Orchestration and data flow
+    - **Visionary**: Processing and analytics for gait assessments
+  contact:
+    name: Synaptic API Team
+    email: api-support@synaptic.local
+
 servers:
   - url: http://localhost
+
+tags:
+  - name: Kiosk
+    description: Handles patient check-in and on-site assessments
+  - name: Relay
+    description: Coordinates assessment orchestration and data movement
+  - name: Visionary
+    description: Performs camera-based assessment processing
+
 paths:
-  /api/v1/assessment/start:
+  /kiosk/assessment/store:
     post:
-      tags: [Relay]
-      summary: Start Assessment
+      tags: [Kiosk]
+      summary: Store local assessment data
+      operationId: storeAssessmentKiosk
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/StartAssessmentRequest'
+              $ref: '#/components/schemas/Assessment'
       responses:
         '200':
-          description: Successful Response
+          description: Assessment stored successfully
           content:
             application/json:
               schema:
                 type: object
-  /api/v1/assessment/store:
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /kiosk/assessment/status:
+    get:
+      tags: [Kiosk]
+      summary: Get current assessment status for a patient
+      operationId: getAssessmentStatus
+      parameters:
+        - name: patient_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Current assessment status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [not_started, in_progress, processing, completed]
+                  current_step:
+                    type: string
+
+  /relay/assessment/prepare:
     post:
       tags: [Relay]
-      summary: Store Assessment
+      summary: Prepare for patient assessment coordination
+      operationId: prepareForAssessment
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/StoreAssessmentRequest'
+              type: object
+              properties:
+                patient_id:
+                  type: string
+              required: [patient_id]
       responses:
         '200':
-          description: Successful Response
+          description: Preparation successful
           content:
             application/json:
               schema:
                 type: object
-  /api/v1/camera/process:
+                properties:
+                  prepared:
+                    type: boolean
+                  next_step:
+                    type: string
+
+  /relay/assessment/store:
+    post:
+      tags: [Relay]
+      summary: Store assessment after processing (from Visionary)
+      operationId: storeAssessmentRelay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Assessment'
+      responses:
+        '200':
+          description: Assessment stored successfully by Relay
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  stored_at:
+                    type: string
+                    format: date-time
+
+  /visionary/assessment/process:
     post:
       tags: [Visionary]
-      summary: Process Camera Data
+      summary: Process camera-based assessment (e.g., gait analysis)
+      operationId: processCameraAssessment
       requestBody:
         required: true
         content:
@@ -51,77 +138,37 @@ paths:
               $ref: '#/components/schemas/CameraDataInput'
       responses:
         '200':
-          description: Successful Response
+          description: Assessment processed successfully
           content:
             application/json:
               schema:
-                type: object
-  /api/v1/emr/send:
-    post:
-      tags: [Nexus]
-      summary: Send Data to EMR
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                type: object
-  /health:
-    get:
-      tags: [infra]
-      summary: Health Check
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                type: object
+                $ref: '#/components/schemas/Assessment'
+
 components:
   schemas:
-    PatientData:
+    Patient:
       type: object
       properties:
-        patient_id:
+        id:
           type: string
-        csn_id:
+        status:
           type: string
-        encounter_id:
-          type: string
-      required: [patient_id, csn_id, encounter_id]
+          enum: [waiting, in_progress, completed]
+      required: [id, status]
+
     Assessment:
       type: object
       properties:
-        assessment_type:
+        id:
           type: string
-          enum: [walking, manual_dexterity]
+        patient_id:
+          type: string
         data:
           type: object
+          description: Arbitrary assessment results or metadata
           additionalProperties: true
-        scheduled_time:
-          type: string
-      required: [assessment_type, data, scheduled_time]
-    StartAssessmentRequest:
-      type: object
-      properties:
-        patient_data:
-          $ref: '#/components/schemas/PatientData'
-      required: [patient_data]
-    StoreAssessmentRequest:
-      type: object
-      properties:
-        assessment:
-          $ref: '#/components/schemas/Assessment'
-        patient_data:
-          $ref: '#/components/schemas/PatientData'
-      required: [assessment, patient_data]
+      required: [patient_id, data]
+
     CameraDataInput:
       type: object
       properties:
@@ -129,6 +176,14 @@ components:
           type: string
         start_time:
           type: string
+          format: date-time
         stop_time:
           type: string
+          format: date-time
       required: [patient_id, start_time, stop_time]
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
