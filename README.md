@@ -34,9 +34,8 @@ class AssessmentState(Enum):
 
 ### Potential Errors
 
-#### Gate Sensor Box
+#### Gate Sensor Box Errors
 
-# gate_sensor_monitor/exceptions.py
 """Custom exceptions for the gate sensor monitor library"""
 
 class GateSensorError(Exception):
@@ -55,9 +54,7 @@ class ConfigurationError(GateSensorError):
     """Raised when configuration is invalid"""
     pass
 
-
-"""Camera control system exceptions."""
-
+### Camera Control System Errors
 
 class CameraControlError(Exception):
     """Base exception for camera control errors."""
